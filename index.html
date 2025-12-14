@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kasir Struk Gambar (Thermal)</title>
+    <style>
+        /* ========================================================= */
+        /* --- CSS DEFAULT (DESKTOP/TABLET LEBAR) --- */
+        /* ========================================================= */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #eef1f5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .main-app {
+            display: flex;
+            max-width: 900px; 
+            width: 95%;
+            margin: 20px auto; 
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .left-panel {
+            flex: 1.5;
+            padding: 20px; 
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .right-panel {
+            flex: 1;
+            padding: 20px;
+            background-color: #f7f7f9;
+        }
+
+        /* Styling Nama Toko */
+        .store-header {
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ddd;
+        }
+        .store-header h2 {
+            margin: 0;
+            font-size: 1.8em;
+            font-weight: 800;
+            color: #007bff;
+            text-shadow: 2px 2px 4px rgba(0, 123, 255, 0.4);
+        }
+
+        #amountDisplay {
+            width: 100%;
+            padding: 15px; 
+            font-size: 2.0em; 
+            text-align: right;
+            border: 2px solid #0056b3;
+            border-radius: 6px;
+            box-sizing: border-box;
+            background-color: #fff;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .control-area {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .control-area button {
+            padding: 14px 0; 
+            font-size: 1.1em; 
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .calc-num { background-color: #f5f5f5; color: #333; }
+        .calc-num:hover { background-color: #e0e0e0; }
+
+        #btnMenuToggle { background-color: #ffc107; color: #333; }
+        #btnReset { background-color: #dc3545; color: white; }
+        #btnBack { background-color: #6c757d; color: white; }
+        .calc-zero { background-color: #cceeff; }
+
+        #btnAddItem {
+            background-color: #28a745;
+            color: white;
+            grid-column: span 2;
+            padding: 18px 0;
+            font-size: 1.2em;
+        }
+        #btnSetPayment {
+            background-color: #007bff;
+            color: white;
+            grid-column: span 2;
+            padding: 18px 0;
+            font-size: 1.2em;
+        }
+
+        .receipt-summary {
+            padding: 10px 0;
+            border-top: 2px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .receipt-summary > div {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.1em;
+        }
+        .receipt-summary .total {
+            font-weight: bold;
+            font-size: 1.3em;
+            color: #0056b3;
+        }
+        
+        .payment-section {
+            padding: 10px 0;
+            border-top: 1px solid #ccc;
+        }
+
+        .payment-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 1.2em;
+        }
+        .payment-info span:last-child {
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .change-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .change-display span:first-child {
+            font-weight: bold;
+            color: #155724;
+        }
+
+        .change-display #changeAmount {
+            font-size: 1.6em;
+            font-weight: 900;
+            color: #155724;
+        }
+
+        .receipt-actions {
+            margin-top: 15px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr; 
+            gap: 8px;
+        }
+        /* Perubahan: Tombol Cetak diubah menjadi "Cetak / Gambar" */
+        .receipt-actions button { 
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 600;
+        }
+        
+        #btnClearReceipt { background-color: #f0ad4e; color: white; }
+        #btnPrint { 
+            background-color: #007bff; 
+            color: white; 
+            grid-column: span 2; /* Agar tombol cetak/gambar lebih besar */
+        }
+        #btnWhatsapp { background-color: #25D366; color: white; grid-column: 1/span 3; } /* WA jadi full width */
+
+        /* OVERLAY Styles */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none; 
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .overlay.active {
+            display: flex; 
+        }
+
+        .overlay-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            text-align: center;
+        }
+        
+        /* KHUSUS DISPLAY GAMBAR STRUK */
+        #receiptImagePreview {
+            max-width: 100%;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            margin-bottom: 15px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .receipt-download-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        /* Layout Menu Overlay */
+        #menuListContainer {
+            display: grid;
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px;
+        }
+
+        .menu-item-button {
+            display: flex;
+            flex-direction: row; 
+            justify-content: space-between; 
+            align-items: center;
+            padding: 12px 15px; 
+            background-color: #f7f9fc;
+            border: 1px solid #e0e6f0;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .menu-item-button .name { font-weight: bold; font-size: 1em; }
+        .menu-item-button .price { font-size: 0.95em; color: #28a745; font-weight: bold; }
+
+        /* WhatsApp Input Styles */
+        .whatsapp-input-container {
+            display: flex;
+            margin-bottom: 15px;
+            border: 2px solid #0056b3;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .whatsapp-input-container span {
+            padding: 15px 10px;
+            background-color: #0056b3;
+            color: white;
+            font-weight: bold;
+        }
+        #waNumberDisplay {
+            flex-grow: 1;
+            padding: 15px;
+            font-size: 1.2em;
+            background-color: #fff;
+            font-weight: 700;
+            text-align: left;
+        }
+        .wa-keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .wa-keypad button {
+            padding: 15px;
+            font-size: 1.5em;
+            border: none;
+            border-radius: 4px;
+            background-color: #f5f5f5;
+            cursor: pointer;
+        }
+        #waKeySend { grid-column: span 2; background-color: #28a745; color: white; }
+        #waKeyBack { background-color: #dc3545; color: white; }
+
+        /* Media Query HP */
+        @media (max-width: 768px) {
+            body { display: block; background-color: #fff; }
+            .main-app { width: 100vw; height: 100vh; margin: 0; border-radius: 0; box-shadow: none; flex-direction: column; display: flex; }
+            .left-panel, .right-panel { padding: 10px; width: 100%; border: none; box-sizing: border-box; }
+            .left-panel { height: 80%; min-height: 350px; order: 2; padding-bottom: 0; gap: 8px; flex-grow: 1; }
+            .right-panel { height: 20%; order: 1; overflow-y: auto; padding-top: 0; }
+            .control-area { gap: 4px; flex-grow: 1; }
+            .control-area button { padding: 15px 0; font-size: 1.1em; }
+            #btnAddItem, #btnSetPayment { padding: 18px 0; font-size: 1.2em; }
+            #amountDisplay { font-size: 2.2em; padding: 12px; }
+            .receipt-actions { grid-template-columns: 1fr 1fr; }
+            #btnClearReceipt { grid-column: span 2; order: 4; }
+            #btnPrint { order: 1; }
+            #btnWhatsapp { order: 2; }
+            .store-header h2 { font-size: 1.5em; }
+            #btnWhatsapp { grid-column: 1/span 2; } /* WA jadi 2 kolom di HP */
+            #btnPrint { grid-column: 1/span 2; } /* Cetak jadi 2 kolom di HP */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-app">
+        <div class="left-panel">
+            
+            <div class="store-header">
+                <h2>Depot Es Salma</h2>
+            </div>
+            
+            <input type="text" id="amountDisplay" value="Rp 0" readonly>
+
+            <div class="control-area">
+                
+                <button id="btnMenuToggle" onclick="toggleMenuOverlay()">MENU</button>
+                <button id="btnReset" onclick="resetInput()">C</button>
+                <button id="btnBack" onclick="backspaceInput()">←</button>
+                <button class="calc-zero" onclick="appendZeros(1)">0</button>
+                
+                <button class="calc-num" onclick="inputDigit(7)">7</button>
+                <button class="calc-num" onclick="inputDigit(8)">8</button>
+                <button class="calc-num" onclick="inputDigit(9)">9</button>
+                <button class="calc-zero" onclick="appendZeros(2)">00</button>
+                
+                <button class="calc-num" onclick="inputDigit(4)">4</button>
+                <button class="calc-num" onclick="inputDigit(5)">5</button>
+                <button class="calc-num" onclick="inputDigit(6)">6</button>
+                <button class="calc-zero" onclick="appendZeros(3)">000</button>
+                
+                <button class="calc-num" onclick="inputDigit(1)">1</button>
+                <button class="calc-num" onclick="inputDigit(2)">2</button>
+                <button class="calc-num" onclick="inputDigit(3)">3</button>
+                <button class="calc-num" onclick="inputDigit(5000)">+5K</button>
+                
+                <button id="btnAddItem" onclick="addItemToReceipt()">TAMBAH ITEM</button>
+                <button id="btnSetPayment" onclick="setAmountPaid()">SET UANG BAYAR</button>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="struk-header">
+                <h3>STRUK SEMENTARA</h3>
+            </div>
+            <ul id="receiptItems"></ul>
+            <div class="receipt-summary">
+                <div><span>Subtotal:</span> <span id="subTotal">Rp 0</span></div>
+                <div class="total"><span>TOTAL:</span> <span id="grandTotal">Rp 0</span></div>
+            </div>
+
+            <div class="payment-section">
+                <div class="payment-info">
+                    <span>UANG BAYAR:</span>
+                    <span id="amountPaidDisplay">Rp 0</span>
+                </div>
+                <div class="change-display">
+                    <span>KEMBALIAN:</span> 
+                    <span id="changeAmount">Rp 0</span>
+                </div>
+            </div>
+            <div class="receipt-actions">
+                <button id="btnClearReceipt" onclick="clearReceipt()">Hapus</button>
+                <button id="btnPrint" onclick="generateAndShowReceiptImage()">Cetak / Gambar</button>
+                <button id="btnWhatsapp" onclick="showWhatsappInput()">Kirim WA</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="menuOverlay" onclick="closeOverlayIfOutside(event, 'menuOverlay')">
+        <div class="overlay-content">
+            <h3>Daftar Menu Layanan</h3>
+            <div id="menuListContainer"></div>
+            <button onclick="hideOverlay('menuOverlay')" style="width: 100%; padding: 10px; margin-top: 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">TUTUP MENU</button>
+        </div>
+    </div>
+    
+    <div class="overlay" id="whatsappOverlay" onclick="closeOverlayIfOutside(event, 'whatsappOverlay')">
+        <div class="overlay-content" style="max-width: 400px;">
+            <h3>Input Nomor WhatsApp</h3>
+            <div class="whatsapp-input-container">
+                <span>+62</span>
+                <div id="waNumberDisplay"></div>
+            </div>
+            <div class="wa-keypad">
+                <button onclick="inputWaDigit(7)">7</button>
+                <button onclick="inputWaDigit(8)">8</button>
+                <button onclick="inputWaDigit(9)">9</button>
+                <button onclick="inputWaDigit(4)">4</button>
+                <button onclick="inputWaDigit(5)">5</button>
+                <button onclick="inputWaDigit(6)">6</button>
+                <button onclick="inputWaDigit(1)">1</button>
+                <button onclick="inputWaDigit(2)">2</button>
+                <button onclick="inputWaDigit(3)">3</button>
+                <button onclick="inputWaDigit(0)">0</button>
+                <button id="waKeySend" onclick="sendReceiptToWhatsapp()">KIRIM</button>
+                <button id="waKeyBack" onclick="backspaceWaInput()">←</button>
+            </div>
+            <button onclick="hideOverlay('whatsappOverlay')" style="width: 100%; padding: 10px; margin-top: 15px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">BATAL</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="receiptResultOverlay" onclick="closeOverlayIfOutside(event, 'receiptResultOverlay')">
+        <div class="overlay-content" style="max-width: 450px;">
+            <h3>Preview Struk (Siap Unduh)</h3>
+            <p style="font-size: 0.9em; color: #666;">Klik kanan pada gambar di bawah untuk **Save Image As...** atau klik tombol **Download Gambar**.</p>
+            
+            <img id="receiptImagePreview" alt="Struk Belanja">
+            
+            <a id="downloadLink" download="struk-belanja.png">
+                <button class="receipt-download-btn">DOWNLOAD GAMBAR</button>
+            </a>
+            
+            <button onclick="hideOverlay('receiptResultOverlay')" style="width: 100%; padding: 10px; margin-top: 5px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">TUTUP</button>
+        </div>
+    </div>
+
+    <script>
+        const STORE_NAME = "Depot Es Salma"; 
+        const menuItems = [
+            { name: "Es Capucino", price: 5000 },
+            { name: "Kopi Hitam Biasa", price: 7000 },
+            { name: "Es Teh Manis", price: 4000 },
+            { name: "Nasi Goreng Spesial", price: 18000 },
+            { name: "Mie Ayam Bakso", price: 15000 },
+            { name: "Roti Bakar Cokelat Keju", price: 12000 },
+            { name: "Air Mineral", price: 3000 },
+        ];
+
+        let currentValue = 0; 
+        let currentOrder = []; 
+        let grandTotalAmount = 0; 
+        let amountPaid = 0;      
+        let waInput = ''; 
+
+        const amountDisplay = document.getElementById('amountDisplay');
+        const receiptItems = document.getElementById('receiptItems');
+        const subTotalDisplay = document.getElementById('subTotal');
+        const grandTotalDisplay = document.getElementById('grandTotal');
+        
+        const amountPaidDisplay = document.getElementById('amountPaidDisplay'); 
+        const changeAmountDisplay = document.getElementById('changeAmount');     
+        const waNumberDisplay = document.getElementById('waNumberDisplay');
+
+        // --- FUNGSI UTILITY ---
+        function formatRupiah(number) {
+            if (number < 0) return `Rp 0`;
+            return `Rp ${number.toLocaleString('id-ID')}`;
+        }
+        function getCurrentDateTime() {
+            const now = new Date();
+            return now.toLocaleString('id-ID', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+            });
+        }
+        function updateDisplay() {
+            amountDisplay.value = formatRupiah(currentValue);
+        }
+
+        // --- FUNGSI OVERLAY UMUM ---
+        function showOverlay(id) {
+            document.getElementById(id).classList.add('active');
+        }
+        function hideOverlay(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+        function closeOverlayIfOutside(event, id) {
+            if (event.target === document.getElementById(id)) {
+                hideOverlay(id);
+            }
+        }
+        function toggleMenuOverlay() { showOverlay('menuOverlay'); }
+
+        // --- FUNGSI KALKULATOR UTAMA (Tetap) ---
+        function inputDigit(digit) {
+            if (digit === 5000) { currentValue += 5000; } 
+            else { 
+                let priceString = String(currentValue);
+                if (priceString.endsWith('000')) priceString = priceString.slice(0, -3);
+                else if (currentValue === 0) priceString = '';
+                priceString += String(digit);
+                currentValue = Number(priceString) * 1000;
+            }
+            if (currentValue > 99999999999) currentValue = 99999999999;
+            updateDisplay();
+        }
+
+        function appendZeros(count) {
+            let multiplier = Math.pow(10, count);
+            if (currentValue === 0 && count === 1) return; 
+            else if (currentValue === 0 && count > 1) currentValue = multiplier * 1000; 
+            else currentValue = currentValue * multiplier;
+            if (currentValue > 99999999999) currentValue = 99999999999;
+            updateDisplay();
+        }
+
+        function resetInput() { currentValue = 0; updateDisplay(); }
+
+        function backspaceInput() {
+            let priceString = String(currentValue);
+            if (priceString.endsWith('000')) priceString = priceString.slice(0, -4); 
+            else { currentValue = 0; updateDisplay(); return; }
+            if (priceString === '' || priceString === '0') currentValue = 0;
+            else currentValue = Number(priceString) * 1000;
+            updateDisplay();
+        }
+
+        function addItemToReceipt() {
+            if (currentValue > 0) {
+                addItemToOrder("Input Manual", currentValue, 1, false); 
+                resetInput();
+            }
+        }
+        
+        function setAmountPaid() {
+            if (currentValue > 0) {
+                amountPaid = currentValue;
+                updatePaymentDisplay();
+                resetInput();
+                if (amountPaid < grandTotalAmount && grandTotalAmount > 0) {
+                     alert("Uang Bayar kurang dari Total.");
+                }
+            } else if (grandTotalAmount > 0 && amountPaid != grandTotalAmount) {
+                amountPaid = grandTotalAmount;
+                updatePaymentDisplay();
+            } else {
+                 alert("Masukkan jumlah uang bayar terlebih dahulu.");
+            }
+        }
+        
+        function updatePaymentDisplay() {
+            amountPaidDisplay.textContent = formatRupiah(amountPaid);
+            calculateChange();
+        }
+
+        function calculateChange() {
+            const change = amountPaid - grandTotalAmount;
+            if (change < 0) {
+                changeAmountDisplay.textContent = formatRupiah(Math.abs(change));
+                changeAmountDisplay.style.color = '#dc3545';
+                changeAmountDisplay.parentElement.querySelector('span:first-child').textContent = 'KEKURANGAN:';
+            } else {
+                changeAmountDisplay.textContent = formatRupiah(change);
+                changeAmountDisplay.style.color = '#155724';
+                changeAmountDisplay.parentElement.querySelector('span:first-child').textContent = 'KEMBALIAN:';
+            }
+        }
+
+        function selectMenuItem(name, price) { addItemToOrder(name, price, 1, true); }
+        
+        function addItemToOrder(name, pricePerUnit, qty, isMenu = true) {
+            const totalItemPrice = pricePerUnit * qty;
+            if (!isMenu) {
+                currentOrder.push({ name: name, price: totalItemPrice, qty: qty, pricePerUnit: pricePerUnit });
+            } else {
+                const existingItemIndex = currentOrder.findIndex(item => item.name === name);
+                if (existingItemIndex > -1) {
+                    currentOrder[existingItemIndex].qty += qty;
+                    currentOrder[existingItemIndex].price += totalItemPrice;
+                } else {
+                    currentOrder.push({ name: name, price: totalItemPrice, qty: qty, pricePerUnit: pricePerUnit });
+                }
+            }
+            updateReceipt();
+        }
+
+        function clearReceipt() {
+            if (currentOrder.length === 0) return;
+            if (confirm("Hapus semua pesanan?")) {
+                currentOrder = []; resetInput(); amountPaid = 0;
+                updateReceipt(); updatePaymentDisplay();
+            }
+        }
+        
+        function updateReceipt() {
+            grandTotalAmount = currentOrder.reduce((sum, item) => sum + item.price, 0);
+            receiptItems.innerHTML = '';
+            currentOrder.forEach(item => {
+                const liReceipt = document.createElement('li');
+                liReceipt.innerHTML = `<span>${item.name} (${item.qty}x)</span><span>${formatRupiah(item.price)}</span>`;
+                receiptItems.appendChild(liReceipt);
+            });
+            subTotalDisplay.textContent = formatRupiah(grandTotalAmount);
+            grandTotalDisplay.textContent = formatRupiah(grandTotalAmount);
+            calculateChange(); 
+        }
+        
+        // --- TEXT GENERATOR (Untuk WA, disederhanakan) ---
+        function generateReceiptText() {
+            const dateTime = getCurrentDateTime();
+            let text = `*${STORE_NAME}*\n`;
+            text += `==================\n`;
+            currentOrder.forEach(item => {
+                text += `${item.name} x${item.qty} - ${formatRupiah(item.price)}\n`;
+            });
+            const change = amountPaid - grandTotalAmount;
+            text += `==================\n`;
+            text += `Total: ${formatRupiah(grandTotalAmount)}\n`;
+            text += `Bayar: ${formatRupiah(amountPaid)}\n`;
+            text += change >= 0 ? `Kembali: ${formatRupiah(change)}\n` : `Kurang: ${formatRupiah(Math.abs(change))}\n`;
+            text += `==================\n`;
+            text += `${dateTime}\nTerima Kasih!`;
+            return text;
+        }
+
+        // --- IMAGE GENERATOR (CANVAS) - Menggantikan printReceipt() ---
+        function generateAndShowReceiptImage() {
+            if (currentOrder.length === 0) { alert("Tidak ada pesanan untuk dicetak."); return; }
+
+            // Validasi pembayaran minimal
+            if (amountPaid < grandTotalAmount) {
+                const confirmPrint = confirm(`PERINGATAN: Uang Bayar kurang Rp ${(grandTotalAmount - amountPaid).toLocaleString('id-ID')}. Tetap buat gambar struk sebagai nota Belum Lunas?`);
+                if (!confirmPrint) return;
+            }
+
+
+            // 1. Setup Canvas
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Konfigurasi Ukuran Struk (Lebar 380px = Standar Thermal Kecil Hi-Res)
+            const width = 380;
+            const padding = 20;
+            const lineHeight = 30;
+            const fontSizeMain = 18;
+            const fontSizeHeader = 24;
+            
+            // Hitung Tinggi Canvas Dinamis
+            let contentHeight = 160; // Header space
+            contentHeight += currentOrder.length * (lineHeight * 2); // Item space (2 baris per item)
+            contentHeight += 150; // Total, Bayar, Footer
+            
+            canvas.width = width;
+            canvas.height = contentHeight;
+
+            // 2. Gambar Background Putih
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 3. Setup Font
+            ctx.fillStyle = "#000000";
+            ctx.textAlign = "center";
+            
+            // 4. Header
+            ctx.font = `bold ${fontSizeHeader}px monospace`;
+            ctx.fillText(STORE_NAME, width / 2, 40);
+            
+            ctx.font = `normal 14px monospace`;
+            ctx.fillText(getCurrentDateTime(), width / 2, 70);
+            
+            // Garis
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#000000';
+            ctx.beginPath();
+            ctx.moveTo(padding, 85);
+            ctx.lineTo(width - padding, 85);
+            ctx.stroke();
+
+            // 5. List Item
+            ctx.textAlign = "left";
+            
+            let yPos = 120;
+            currentOrder.forEach(item => {
+                // Nama Item
+                ctx.font = `bold ${fontSizeMain}px monospace`;
+                ctx.fillText(`${item.name}`, padding, yPos);
+                yPos += lineHeight;
+                
+                // Qty dan Harga (kanan)
+                ctx.font = `normal ${fontSizeMain}px monospace`;
+                const priceText = formatRupiah(item.price);
+                const qtyText = `x${item.qty}`;
+                
+                ctx.fillText(qtyText, padding, yPos);
+                
+                ctx.textAlign = "right";
+                ctx.fillText(priceText, width - padding, yPos);
+                ctx.textAlign = "left";
+                
+                yPos += lineHeight;
+                yPos += 5; // Spacer antar item
+            });
+
+            // Garis Pemisah
+            yPos += 10;
+            ctx.beginPath();
+            ctx.moveTo(padding, yPos);
+            ctx.lineTo(width - padding, yPos);
+            ctx.stroke();
+            yPos += 30;
+
+            // 6. Total Calculation
+            const kembalian = amountPaid - grandTotalAmount;
+            
+            // Fungsi helper baris
+            function drawRow(label, value, isBold = false) {
+                ctx.font = isBold ? `bold ${fontSizeMain + 2}px monospace` : `normal ${fontSizeMain}px monospace`;
+                ctx.textAlign = "left";
+                ctx.fillText(label, padding, yPos);
+                ctx.textAlign = "right";
+                ctx.fillText(value, width - padding, yPos);
+                yPos += lineHeight;
+            }
+
+            drawRow("TOTAL", formatRupiah(grandTotalAmount), true);
+            yPos += 5;
+            drawRow("Bayar", formatRupiah(amountPaid));
+            
+            if (kembalian >= 0) {
+                drawRow("Kembali", formatRupiah(kembalian));
+            } else {
+                drawRow("Kurang", formatRupiah(Math.abs(kembalian)));
+            }
+
+            // 7. Footer
+            yPos += 30;
+            ctx.textAlign = "center";
+            ctx.font = "italic 14px monospace";
+            ctx.fillText("Terima Kasih atas Kunjungan Anda", width / 2, yPos);
+            
+            // 8. Tampilkan di Overlay
+            const dataUrl = canvas.toDataURL("image/png");
+            const imgPreview = document.getElementById('receiptImagePreview');
+            const downloadBtn = document.getElementById('downloadLink');
+            
+            imgPreview.src = dataUrl;
+            downloadBtn.href = dataUrl;
+            
+            // Buat nama file unik berdasarkan jam
+            const timeCode = new Date().getTime();
+            downloadBtn.download = `Struk-${STORE_NAME.replace(/\s+/g, '-')}-${timeCode}.png`;
+            
+            showOverlay('receiptResultOverlay');
+        }
+
+        // --- WA SECTION (Tetap) ---
+        function updateWaDisplay() { waNumberDisplay.textContent = waInput; }
+        function showWhatsappInput() {
+            if (currentOrder.length === 0) { alert("Tidak ada pesanan untuk dikirim."); return; }
+            if (amountPaid < grandTotalAmount) {
+                 const confirmWA = confirm(`PERINGATAN: Uang Bayar kurang Rp ${(grandTotalAmount - amountPaid).toLocaleString('id-ID')}. Tetap kirim sebagai nota Belum Lunas?`);
+                if (!confirmWA) return;
+            }
+            waInput = ''; updateWaDisplay(); showOverlay('whatsappOverlay');
+        }
+        function inputWaDigit(digit) { if (waInput.length < 15) { waInput += String(digit); updateWaDisplay(); } }
+        function backspaceWaInput() { waInput = waInput.slice(0, -1); updateWaDisplay(); }
+        function sendReceiptToWhatsapp() {
+            if (waInput.length < 7) { alert("Nomor WA tidak valid."); return; }
+            const fullNumber = "62" + waInput.replace(/^0+/, ''); 
+            const encodedText = encodeURIComponent(generateReceiptText());
+            window.open(`https://wa.me/${fullNumber}?text=${encodedText}`, '_blank');
+            hideOverlay('whatsappOverlay');
+        }
+        
+        // --- INISIALISASI (Tetap) ---
+        function generateMenu() {
+            const menuContainer = document.getElementById('menuListContainer');
+            menuContainer.innerHTML = menuItems.map(item => `
+                <button class="menu-item-button" onclick="selectMenuItem('${item.name}', ${item.price})">
+                    <span class="name">${item.name}</span>
+                    <span class="price">${formatRupiah(item.price)}</span>
+                </button>
+            `).join('');
+        }
+
+        window.onload = () => {
+            generateMenu();
+            updateDisplay(); 
+            updateReceipt(); 
+            updatePaymentDisplay(); 
+        };
+    </script>
+</body>
+</html>
